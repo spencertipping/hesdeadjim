@@ -82,8 +82,6 @@ check_disk "/mnt/v1" 90 problem info "`df /mnt/v1`"
 check_disk "reykjavik /mnt/t9" 90 problem info "`ssh 10.35.0.3 df /mnt/t9`"
 check_disk "reykjavik /mnt/t3" 90 problem info "`ssh 10.35.0.3 df /mnt/t3`"
 
-mv "$outfile.tmp" "$outfile"
-
 # VPN clients
 ping_check "VPN iniidae"      10.35.1.4  warning
 ping_check "VPN iris"         10.35.1.6  warning
@@ -95,3 +93,5 @@ ping_check "VPN xenorophidae" 10.35.0.12 warning
 ping_check "DSL modem"              192.168.0.1 problem
 ping_check "Public DNS (primary)"   8.8.8.8     problem
 ping_check "Public DNS (secondary)" 8.8.4.4     problem
+
+mv "$outfile.tmp" "$outfile"
