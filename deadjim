@@ -1,0 +1,57 @@
+#!/bin/bash
+# My monitoring script; you would probably want to rewrite the site-specific
+# stuff below.
+
+outfile=$1
+
+exec >"$outfile.tmp"
+
+for thing in ok info warning problem; do
+  eval "$thing() { echo \"<div class='$thing'>\$1</div>\"; }"
+done
+
+host_up_check() {
+  local name=$1
+  local ip=$2
+  local howbad=$3
+
+  ping -c 2 -q $ip > /dev/null || { $howbad "$name is offline"; return; }
+  ssh $ip :                    || { $howbad "$name SSH is down"; return; }
+
+  root_usage=`ssh $ip df -m / | tail -n1 | awk '{print $5}'`
+  if (( ${root_usage%%%} > 90 )); then
+    problem "$name root filesystem is at $root_usage"
+  else
+    info "$name root filesystem is at $root_usage"
+  fi
+
+  ok "$name is online"
+}
+
+echo "<div id='rundate'>`date +%s`</div>"
+
+host_up_check rorschach  10.35.0.2 problem
+host_up_check reykjavik  10.35.0.3 problem
+host_up_check rho        10.35.0.4 problem
+host_up_check rockhopper 10.35.0.5 info         # not always on
+
+# Check RAID6 on rho
+ssh 10.35.0.4 'cat /proc/mdstat' | egrep -q UUUUUUUUUUUU \
+  || problem "rho RAID6 is degraded or down"
+
+# Make sure /mnt/v1 is mounted and writable
+if ! [[ -d /mnt/v1/st ]]; then
+  problem "/mnt/v1 is offline"
+else
+  touch /mnt/v1/st/deadjim || problem "/mnt/v1 isn't writable"
+
+  # shared volumes
+  v1_usage=`df -m /mnt/v1 | tail -n1 | awk '{print $5}'`
+  if (( ${v1_usage%%%} > 90 )); then
+    warning "/mnt/v1 at $v1_usage"
+  else
+    info "/mnt/v1 at $v1_usage"
+  fi
+fi
+
+mv "$outfile.tmp" "$outfile"

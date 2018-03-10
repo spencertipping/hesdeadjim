@@ -1,0 +1,179 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+
+use Carp;
+use Socket;
+
+use constant deadjim_html => <<'EOF';
+<!doctype html>
+<html>
+<head>
+<title>He's dead, Jim</title>
+<style>
+body { font-family: sans-serif; margin: 40px auto; width: 600px }
+
+#state div { padding: 4px 20px; background: #f4f4f4; margin: 4px 0; border-left: solid 1px #444 }
+#state .problem { background: #ffcccc; border-left: solid 1px #f44 }
+#state .warning { background: #ffffcc; border-left: solid 1px #f84 }
+#state .ok      { background: #ccffcc; border-left: solid 1px #797 }
+
+#rundate    { display: none }
+#connection { padding: 10px 0; border-bottom: solid 1px #444 }
+#connection.offline { color: red; font-weight: bold }
+</style>
+</head>
+<body>
+<div id='connection'></div>
+<div id='state'></div>
+<script src='https://code.jquery.com/jquery-1.12.4.min.js'></script>
+<script>
+var connection_failure  = null;
+var last_deadness       = '';
+var last_deadness_time  = +new Date;
+var last_server_time    = +new Date;
+var baseline_server_lag = null;
+
+$.get('/time', function (t) {
+  baseline_server_lag = +new Date - t*1000;
+});
+
+var notifications_supported =
+  !!window.Notification && Notification.permission !== "denied";
+
+var last_notify = 0;
+var notify = function (title, body) {
+  var now = +new Date;
+  if (notifications_supported && now - last_notify > 10000) {
+    new Notification(title, {body: body});
+    last_notify = now;
+  }
+};
+
+var check_for_deadness = function () {
+  $.get("/log")
+   .done(function (html) {
+      $('#state').html(html);
+      $('#state').prepend($('.problem')).append($('.ok'));
+
+      var deadness = $('#state .problem');
+      $('title').text(deadness.size() ? "He's dead, Jim" : "Jim, he's OK");
+
+      var server_time = +$('#rundate').text() * 1000;
+      if (baseline_server_lag == null)
+        baseline_server_lag = +new Date - server_time;
+
+      // Did stuff change?
+      var deadness_text = deadness.text();
+      if (deadness_text !== last_deadness && deadness.size())
+        notify("He's dead, Jim",
+          Array.prototype.slice.call(deadness).map((x) => $(x).text()).join("\n"));
+
+      last_deadness      = deadness_text;
+      last_deadness_time = +new Date;
+      last_server_time   = +baseline_server_lag + server_time;
+      connection_failure = null;
+    })
+   .fail(function (error, status, message) {
+      connection_failure = message;
+    });
+};
+
+var update_connection_state = function () {
+  var last_update_ms     = +new Date - last_server_time;
+  var last_connection_ms = +new Date - last_deadness_time;
+  if (notifications_supported && Notification.permission !== "granted")
+    Notification.requestPermission();
+
+  if (last_update_ms > 180000) {
+    if (!$('#connection').hasClass('offline')) {
+      $('#connection').addClass('offline');
+      notify("Jim, we're offline",
+             last_update_ms > 180000 && last_connection_ms < 30000
+               ? "The server process hasn't updated the logs in 3 minutes"
+               : "The DeadJim webserver hasn't replied in 30 seconds");
+    }
+  } else
+    $('#connection').removeClass('offline');
+
+  $('#connection').text(
+    'Last updated ' + (last_update_ms / 1000 | 0)
+                    + ' second(s) ago; server time delta = '
+                    + baseline_server_lag + 'ms');
+};
+
+$(check_for_deadness);
+setInterval(check_for_deadness, 1000);
+setInterval(update_connection_state, 500);
+</script>
+</body>
+</html>
+EOF
+
+BEGIN
+{
+  $Carp::Verbose = 1;
+  $SIG{CHLD} = 'IGNORE';
+  $SIG{__DIE__} = sub { Carp::confess(@_) };
+}
+
+sub uri_decode(@) { (my $u = $_[0]) =~ s/%([0-9A-Fa-f]{2})/chr hex $1/eg; $u }
+
+sub http($$)
+{
+  my ($port, $f) = @_;
+  my ($server, $client);
+
+  socket $server, PF_INET, SOCK_STREAM, getprotobyname 'tcp'
+    or die "deadjim: socket() failed: $!";
+  setsockopt $server, SOL_SOCKET, SO_REUSEADDR, pack 'l', 1
+    or die "deadjim: setsockopt() failed: $!";
+
+  bind $server, sockaddr_in $port, INADDR_ANY
+    or die "deadjim: bind($port) failed: $!";
+
+  listen $server, SOMAXCONN
+    or die "deadjim: listen() failed: $!";
+
+  &$f();
+  for (; $_ = '', accept $client, $server; close $client)
+  {
+    next if fork;
+    my $n = 1;
+    close $server;
+    $n = read $client, $_, 1, length until !$n || /\r?\n\r?\n/;
+    &$f(uri_decode(/^GET (.*) HTTP\//), $_, $client);
+    exit;
+  }
+}
+
+sub http_reply($$$%)
+{
+  my ($fh, $code, $body, %headers) = @_;
+  $fh->print(join "\n", "HTTP/1.1 $code OK",
+                        map("$_: $headers{$_}", sort keys %headers),
+                        "Content-Length: " . length($body),
+                        '',
+                        $body);
+}
+
+sub read_deadjim_log($)
+{
+  open my $fh, '<', $_[0] or die "deadjim: failed to read logfile: $!";
+  join"", <$fh>;
+}
+
+my ($port, $tempfile) = @ARGV;
+die "must specify port and logfile, e.g. $0 8080 /tmp/deadjim.log"
+  unless @ARGV == 2;
+
+http $port, sub {
+  my ($url, $req, $reply) = @_;
+  return print "deadjim server running on http://0.0.0.0:$port\n" unless @_;
+  return http_reply $reply, 200, deadjim_html               if $url eq '/';
+  return http_reply $reply, 200, time()                     if $url eq '/time';
+  return http_reply $reply, 200, read_deadjim_log $tempfile if $url eq '/log';
+
+  http_reply $reply, 404,
+    "deadjim only has three endpoints: /, /time, and /log";
+};
