@@ -3,6 +3,12 @@
 
 Basically, the dumbest possible thing you could to for monitoring.
 
+## What it looks like
+![image](http://storage9.static.itmages.com/i/18/0310/h_1520724312_6043538_6d65108798.png)
+
+You'll get desktop notifications if the server drops offline, any problems
+arise, or if the crontab process doesn't update within three minutes.
+
 ## Using it
 Edit `./deadjim` to monitor the stuff you care about, then add it to your
 crontab like this:
