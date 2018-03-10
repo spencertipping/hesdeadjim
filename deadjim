@@ -73,8 +73,10 @@ ssh 10.35.0.4 'cat /proc/mdstat' | egrep -q UUUUUUUUUUUU \
 # Make sure /mnt/v1 is mounted and writable
 if ! [[ -d /mnt/v1/st ]]; then
   problem "/mnt/v1 is offline"
+elif ! touch /mnt/v1/st/deadjim; then
+  problem "/mnt/v1 isn't writable"
 else
-  touch /mnt/v1/st/deadjim || problem "/mnt/v1 isn't writable"
+  ok "/mnt/v1 is online + writable"
 fi
 
 # shared volumes
@@ -93,5 +95,18 @@ ping_check "VPN xenorophidae" 10.35.0.12 warning
 ping_check "DSL modem"              192.168.0.1 problem
 ping_check "Public DNS (primary)"   8.8.8.8     problem
 ping_check "Public DNS (secondary)" 8.8.4.4     problem
+
+# Port forwarding status
+# Look for bogus SSH logins within the last ten minutes.
+last_ssh_invalid=`./ni /var/log/auth.log r/Invalid/ \
+                       r+1p'my ($y, $m) = tep Ym => time;
+                            my $log_t = tpe $y, $m, /\d+/g;
+                            $log_t - time'`
+
+if (( last_ssh_invalid > 600 )); then
+  problem "SSH port forwarding may not be working ($last_ssh_invalid seconds since last invalid attempt)"
+else
+  ok "SSH port forwarding is working as of $last_ssh_invalid seconds ago"
+fi
 
 mv "$outfile.tmp" "$outfile"
