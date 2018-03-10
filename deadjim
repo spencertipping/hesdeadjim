@@ -2,6 +2,9 @@
 # My monitoring script; you would probably want to rewrite the site-specific
 # stuff below.
 
+cd "$(dirname "$0")"
+git pull >&/dev/null
+
 outfile=$1
 
 exec >"$outfile.tmp"
