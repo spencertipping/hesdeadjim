@@ -1,4 +1,7 @@
 # He's dead, Jim
+![image](https://i.imgflip.com/ihebz.jpg)
+![image](https://memegenerator.net/img/instances/65756847/im-sorry-i-cant-hear-you-over-the-sound-of-how-awesome-i-am.jpg)
+
 Basically, the dumbest possible thing you could to for monitoring.
 
 ## Using it
