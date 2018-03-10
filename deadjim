@@ -35,6 +35,13 @@ host_up_check reykjavik  10.35.0.3 problem
 host_up_check rho        10.35.0.4 problem
 host_up_check rockhopper 10.35.0.5 info         # not always on
 
+# Check gitlab server
+if ! curl 10.35.0.3:8180 >&/dev/null; then
+  problem "reykjavik gitlab appears to be down"
+else
+  ok "reykjavik gitlab is running"
+fi
+
 # Check RAID6 on rho
 ssh 10.35.0.4 'cat /proc/mdstat' | egrep -q UUUUUUUUUUUU \
   || problem "rho RAID6 is degraded or down"
