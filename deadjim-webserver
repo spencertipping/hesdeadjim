@@ -117,8 +117,6 @@ BEGIN
   $SIG{__DIE__} = sub { Carp::confess(@_) };
 }
 
-sub uri_decode(@) { (my $u = $_[0]) =~ s/%([0-9A-Fa-f]{2})/chr hex $1/eg; $u }
-
 sub http($$)
 {
   my ($port, $f) = @_;
@@ -142,7 +140,8 @@ sub http($$)
     my $n = 1;
     close $server;
     $n = read $client, $_, 1, length until !$n || /\r?\n\r?\n/;
-    &$f(uri_decode(/^GET (.*) HTTP\//), $_, $client);
+    my ($url) = /^GET (.*) HTTP\//;
+    &$f($url, $_, $client);
     exit;
   }
 }
