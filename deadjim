@@ -40,14 +40,15 @@ host_up_check() {
   ok "$name is online"
 }
 
-vpn_ping_check() {
+ping_check() {
   local name=$1
   local ip=$2
+  local howbad=$3
 
   if ping -c 2 -q $ip > /dev/null; then
-    ok "VPN client $name is connected"
+    ok "$name is connected"
   else
-    warning "VPN client $name is offline"
+    $howbad "$name is offline"
   fi
 }
 
@@ -84,8 +85,13 @@ check_disk "reykjavik /mnt/t3" 90 problem info "`ssh 10.35.0.3 df /mnt/t3`"
 mv "$outfile.tmp" "$outfile"
 
 # VPN clients
-vpn_ping_check iniidae      10.35.1.4
-vpn_ping_check iris         10.35.1.6
-vpn_ping_check lily         10.35.1.8
-vpn_ping_check xhosacetus   10.35.0.10
-vpn_ping_check xenorophidae 10.35.0.12
+ping_check "VPN iniidae"      10.35.1.4  warning
+ping_check "VPN iris"         10.35.1.6  warning
+ping_check "VPN lily"         10.35.1.8  warning
+ping_check "VPN xhosacetus"   10.35.0.10 warning
+ping_check "VPN xenorophidae" 10.35.0.12 warning
+
+# ISP status
+ping_check "DSL modem"              192.168.0.1 problem
+ping_check "Public DNS (primary)"   8.8.8.8     problem
+ping_check "Public DNS (secondary)" 8.8.4.4     problem
