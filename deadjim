@@ -10,6 +10,21 @@ for thing in ok info warning problem; do
   eval "$thing() { echo \"<div class='$thing'>\$1</div>\"; }"
 done
 
+check_disk() {
+  local name=$1
+  local limit=$2
+  local bad_deadness=$3
+  local good_deadness=$4
+  local df_output=$5
+
+  local usage=`echo "$df_output" | tail -n1 | awk '{print $5}'`
+  if (( ${usage%%%} > $limit )); then
+    $bad_deadness "$name is at $usage (limit = $limit%)"
+  else
+    $good_deadness "$name is at $usage"
+  fi
+}
+
 host_up_check() {
   local name=$1
   local ip=$2
@@ -18,13 +33,7 @@ host_up_check() {
   ping -c 2 -q $ip > /dev/null || { $howbad "$name is offline"; return; }
   ssh $ip :                    || { $howbad "$name SSH is down"; return; }
 
-  root_usage=`ssh $ip df -m / | tail -n1 | awk '{print $5}'`
-  if (( ${root_usage%%%} > 90 )); then
-    problem "$name root filesystem is at $root_usage"
-  else
-    info "$name root filesystem is at $root_usage"
-  fi
-
+  check_disk "$name root FS" 90 problem info "`ssh $ip df /`"
   ok "$name is online"
 }
 
@@ -51,14 +60,11 @@ if ! [[ -d /mnt/v1/st ]]; then
   problem "/mnt/v1 is offline"
 else
   touch /mnt/v1/st/deadjim || problem "/mnt/v1 isn't writable"
-
-  # shared volumes
-  v1_usage=`df -m /mnt/v1 | tail -n1 | awk '{print $5}'`
-  if (( ${v1_usage%%%} > 90 )); then
-    warning "/mnt/v1 at $v1_usage"
-  else
-    info "/mnt/v1 at $v1_usage"
-  fi
 fi
+
+# shared volumes
+check_disk "/mnt/v1" 90 problem info "`df /mnt/v1`"
+check_disk "reykjavik /mnt/t9" 90 problem info "`ssh 10.35.0.3 df /mnt/t9`"
+check_disk "reykjavik /mnt/t3" 90 problem info "`ssh 10.35.0.3 df /mnt/t3`"
 
 mv "$outfile.tmp" "$outfile"
