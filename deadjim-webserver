@@ -168,7 +168,8 @@ die "must specify port and logfile, e.g. $0 8080 /tmp/deadjim.log"
 
 http $port, sub {
   my ($url, $req, $reply) = @_;
-  return print "deadjim server running on http://0.0.0.0:$port\n" unless @_;
+  return print "deadjim server running on http://0.0.0.0:$port\n"
+    unless defined $url;
   return http_reply $reply, 200, deadjim_html               if $url eq '/';
   return http_reply $reply, 200, time()                     if $url eq '/time';
   return http_reply $reply, 200, read_deadjim_log $tempfile if $url eq '/log';
