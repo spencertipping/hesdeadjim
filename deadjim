@@ -54,9 +54,9 @@ ssh_access_check() {
 
   local bogus_logins=` \
     ./ni s$ip /var/log/auth.log r/Accepted/ \
-         r+100rp'my ($y, $m) = tep Ym => time;
-                 time() - tpe($y, $m, /\d+/g) < 600' \
-         p'/from (\S+)/' rp"!/$subnets/"`
+         rp"!/from (?:$subnets)/" \
+         rp'my ($y, $m) = tep Ym => time;
+            within 0, 3600, time() - tpe($y, $m, /\d+/g)'`
 
   [[ -z "$bogus_logins" ]] \
     || $howbad "$name: unexpected login(s) from $bogus_logins"
