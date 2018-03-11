@@ -46,17 +46,35 @@ loadavg_check() {
   fi
 }
 
+ssh_access_check() {
+  local name=$1
+  local ip=$2
+  local howbad=$3
+  local subnets=$4
+
+  local bogus_logins=` \
+    ./ni s$ip /var/log/auth.log r/Accepted/ \
+         r+100rp'my ($y, $m) = tep Ym => time;
+                 time() - tpe($y, $m, /\d+/g) < 600' \
+         p'/from (\S+)/' rp"!/$subnets/"`
+
+  [[ -z "$bogus_logins" ]] \
+    || $howbad "$name: unexpected login(s) from $bogus_logins"
+}
+
 host_up_check() {
   local name=$1
   local ip=$2
   local howbad=$3
   local loadavg_limit=${4:-4}
+  local ssh_allowed_subnets=${5:-10\\.35\\.}
 
   ping -c 2 -q $ip > /dev/null || { $howbad "$name is offline"; return; }
   ssh $ip :                    || { $howbad "$name SSH is down"; return; }
 
   disk_check "$name root FS" 512 problem info "`ssh $ip df -m /`"
   loadavg_check $name $loadavg_limit problem "`ssh $ip cat /proc/loadavg`"
+  ssh_access_check $name $ip problem "$ssh_allowed_subnets"
 }
 
 ping_check() {
@@ -73,7 +91,7 @@ ping_check() {
 
 echo "<div id='rundate'>`date +%s`</div>"
 
-host_up_check rorschach  10.35.0.2 problem 48
+host_up_check rorschach  10.35.0.2 problem 48 '10\.35\.[01]\.|192\.168\.0\.'
 host_up_check reykjavik  10.35.0.3 problem 16
 host_up_check rho        10.35.0.4 problem 4
 host_up_check rockhopper 10.35.0.5 info    48     # not always on
