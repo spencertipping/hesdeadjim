@@ -59,7 +59,7 @@ ssh_access_check() {
             within 0, 3600, time() - tpe($y, $m, /\d+/g)'`
 
   [[ -z "$bogus_logins" ]] \
-    || $howbad "$name: unexpected login(s) from $bogus_logins"
+    || $howbad "$name: unexpected login(s): $bogus_logins"
 }
 
 host_up_check() {
