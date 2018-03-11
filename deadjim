@@ -84,6 +84,20 @@ else
   ok "reykjavik gitlab is running"
 fi
 
+gitlab_backup_stat=`ssh 10.35.0.2 stat -s /mnt/v1/backups/reykjavik-srv-backup.tar`
+gitlab_backup_size=`echo "$gitlab_backup_stat" | awk '{print $2}'`
+gitlab_backup_modtime=`echo "$gitlab_backup_stat" | awk '{print $13}'`
+
+(( gitlab_backup_size > 4096*1048576 )) \
+  || problem "gitlab backup is too small ($((gitlab_backup_size / 1024)) KB)"
+
+gitlab_backup_seconds=$((start_time - gitlab_backup_modtime))
+if (( gitlab_backup_seconds > 7200 )); then
+  problem "gitlab backup is too old: $gitlab_backup_seconds second(s)"
+else
+  ok "gitlab backup is $gitlab_backup_seconds second(s) old"
+fi
+
 # Check RAID6 on rho
 ssh 10.35.0.4 'cat /proc/mdstat' | egrep -q UUUUUUUUUUUU \
   || problem "rho RAID6 is degraded or down"
@@ -97,7 +111,7 @@ else
   ok "/mnt/v1 is online + writable"
 fi
 
-# shared volumes
+# Shared volumes
 check_disk "/mnt/v1" 90 problem info "`df /mnt/v1`"
 check_disk "reykjavik /mnt/t9" 90 problem info "`ssh 10.35.0.3 df /mnt/t9`"
 check_disk "reykjavik /mnt/t3" 90 problem info "`ssh 10.35.0.3 df /mnt/t3`"
