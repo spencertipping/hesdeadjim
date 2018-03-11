@@ -84,7 +84,7 @@ else
   ok "reykjavik gitlab is running"
 fi
 
-gitlab_backup_stat=`ssh 10.35.0.2 stat -s /mnt/v1/backups/reykjavik-srv-backup.tar`
+gitlab_backup_stat=`stat -t /mnt/v1/backups/reykjavik-srv-backup.tar`
 gitlab_backup_size=`echo "$gitlab_backup_stat" | awk '{print $2}'`
 gitlab_backup_modtime=`echo "$gitlab_backup_stat" | awk '{print $13}'`
 
