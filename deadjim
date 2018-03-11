@@ -15,7 +15,7 @@ for thing in ok info warning problem; do
   eval "$thing() { echo \"<div class='$thing'>\$1</div>\"; }"
 done
 
-check_disk() {
+disk_check() {
   local name=$1
   local limit=$2
   local bad_deadness=$3
@@ -30,15 +30,31 @@ check_disk() {
   fi
 }
 
+loadavg_check() {
+  local name=$1
+  local limit=$2
+  local howbad=$3
+  local proc_loadavg=$4
+
+  local load_avg=`./ni i"$proc_loadavg" FSp'int a'`
+  if (( load_avg > limit )); then
+    $howbad "$name has 1-minute load average $load_avg (limit is $limit)"
+  else
+    ok "$name has 1-minute load average $load_avg"
+  fi
+}
+
 host_up_check() {
   local name=$1
   local ip=$2
   local howbad=$3
+  local loadavg_limit=${4:-4}
 
   ping -c 2 -q $ip > /dev/null || { $howbad "$name is offline"; return; }
   ssh $ip :                    || { $howbad "$name SSH is down"; return; }
 
-  check_disk "$name root FS" 90 problem info "`ssh $ip df /`"
+  disk_check "$name root FS" 90 problem info "`ssh $ip df /`"
+  loadavg_check $name $loadavg_limit problem "`ssh $ip cat /proc/loadavg`"
   ok "$name is online"
 }
 
@@ -56,10 +72,10 @@ ping_check() {
 
 echo "<div id='rundate'>`date +%s`</div>"
 
-host_up_check rorschach  10.35.0.2 problem
-host_up_check reykjavik  10.35.0.3 problem
-host_up_check rho        10.35.0.4 problem
-host_up_check rockhopper 10.35.0.5 info         # not always on
+host_up_check rorschach  10.35.0.2 problem 48
+host_up_check reykjavik  10.35.0.3 problem 16
+host_up_check rho        10.35.0.4 problem 4
+host_up_check rockhopper 10.35.0.5 info    48     # not always on
 
 # Check gitlab server
 if ! curl 10.35.0.3:8180 >&/dev/null; then
