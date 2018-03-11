@@ -2,6 +2,8 @@
 # My monitoring script; you would probably want to rewrite the site-specific
 # stuff below.
 
+set -euo pipefail
+
 start_time=`date +%s`
 
 cd "$(dirname "$0")"
@@ -22,11 +24,11 @@ disk_check() {
   local good_deadness=$4
   local df_output=$5
 
-  local usage=`echo "$df_output" | tail -n1 | awk '{print $5}'`
-  if (( ${usage%%%} > $limit )); then
-    $bad_deadness "$name is at $usage (limit = $limit%)"
+  local free=`echo "$df_output" | tail -n1 | awk '{print $4}'`
+  if (( free < limit )); then
+    $bad_deadness "$name has $free MB free (below limit of $limit)"
   else
-    $good_deadness "$name is at $usage"
+    $good_deadness "$name has $free MB free"
   fi
 }
 
@@ -53,7 +55,7 @@ host_up_check() {
   ping -c 2 -q $ip > /dev/null || { $howbad "$name is offline"; return; }
   ssh $ip :                    || { $howbad "$name SSH is down"; return; }
 
-  disk_check "$name root FS" 90 problem info "`ssh $ip df /`"
+  disk_check "$name root FS" 512 problem info "`ssh $ip df /`"
   loadavg_check $name $loadavg_limit problem "`ssh $ip cat /proc/loadavg`"
 }
 
@@ -118,9 +120,11 @@ else
 fi
 
 # Shared volumes
-check_disk "/mnt/v1" 90 problem info "`df /mnt/v1`"
-check_disk "reykjavik /mnt/t9" 90 problem info "`ssh 10.35.0.3 df /mnt/t9`"
-check_disk "reykjavik /mnt/t3" 90 problem info "`ssh 10.35.0.3 df /mnt/t3`"
+# 4TB usage margin on /mnt/v1
+# 1TB usage margins on /mnt/t9 and /mnt/t3
+disk_check "/mnt/v1" $((4096 * 1024)) problem info "`df /mnt/v1`"
+disk_check "reykjavik /mnt/t9" 1048576 problem info "`ssh 10.35.0.3 df /mnt/t9`"
+disk_check "reykjavik /mnt/t3" 1048576 problem info "`ssh 10.35.0.3 df /mnt/t3`"
 
 # VPN clients
 ping_check "VPN iniidae"      10.35.1.4  warning
