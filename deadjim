@@ -36,8 +36,8 @@ loadavg_check() {
   local howbad=$3
   local proc_loadavg=$4
 
-  local load_avg=`./ni i"$proc_loadavg" FSp'int a'`
-  if (( load_avg > limit )); then
+  local load_avg=`echo "$proc_loadavg" | awk '{print $1}'`
+  if (( ${load_avg%.*} > ${limit%.*} )); then
     $howbad "$name has 1-minute load average $load_avg (limit is $limit)"
   else
     ok "$name has 1-minute load average $load_avg"
