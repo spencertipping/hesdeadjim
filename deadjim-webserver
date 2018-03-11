@@ -5,6 +5,8 @@ use warnings;
 use Carp;
 use Socket;
 
+(my $self_dir = $0) =~ s/\/[^\/]*$//;
+
 use constant deadjim_html => <<'EOF';
 <!doctype html>
 <html>
@@ -26,7 +28,7 @@ body { font-family: sans-serif; margin: 40px auto; width: 600px }
 <body>
 <div id='connection'></div>
 <div id='state'></div>
-<script src='https://code.jquery.com/jquery-1.12.4.min.js'></script>
+<script src='/jquery.js'></script>
 <script>
 var connection_failure  = null;
 var last_deadness       = '';
@@ -156,11 +158,13 @@ sub http_reply($$$%)
                         $body);
 }
 
-sub read_deadjim_log($)
+sub read_file($)
 {
-  open my $fh, '<', $_[0] or die "deadjim: failed to read logfile: $!";
+  open my $fh, '<', $_[0] or return "";
   join"", <$fh>;
 }
+
+use constant jquery_min => read_file "jquery.min.js";
 
 my ($port, $tempfile) = @ARGV;
 die "must specify port and logfile, e.g. $0 8080 /tmp/deadjim.log"
@@ -170,9 +174,10 @@ http $port, sub {
   my ($url, $req, $reply) = @_;
   return print "deadjim server running on http://0.0.0.0:$port\n"
     unless defined $url;
-  return http_reply $reply, 200, deadjim_html               if $url eq '/';
-  return http_reply $reply, 200, time()                     if $url eq '/time';
-  return http_reply $reply, 200, read_deadjim_log $tempfile if $url eq '/log';
+  return http_reply $reply, 200, deadjim_html        if $url eq '/';
+  return http_reply $reply, 200, jquery_min          if $url eq '/jquery.js';
+  return http_reply $reply, 200, time()              if $url eq '/time';
+  return http_reply $reply, 200, read_file $tempfile if $url eq '/log';
 
   http_reply $reply, 404,
     "deadjim only has three endpoints: /, /time, and /log";
