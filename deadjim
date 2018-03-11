@@ -92,7 +92,7 @@ else
   ok "reykjavik gitlab is running"
 fi
 
-gitlab_backup_modtime=`cat /mnt/v1/backups/reykjavik-srv-backup/backup-date`
+gitlab_backup_modtime=$(< /mnt/v1/backups/reykjavik-srv-backup/backup-date)
 gitlab_backup_seconds=$((start_time - gitlab_backup_modtime))
 if (( gitlab_backup_seconds > 3600 + 1800 )); then
   problem "gitlab backup is too old: ${gitlab_backup_seconds}s (limit is 5400s)"
