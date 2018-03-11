@@ -2,6 +2,8 @@
 # My monitoring script; you would probably want to rewrite the site-specific
 # stuff below.
 
+start_time=`date +%s`
+
 cd "$(dirname "$0")"
 git pull >&/dev/null
 
@@ -117,6 +119,14 @@ if (( last_ssh_invalid > 600 )); then
   problem "SSH port forwarding may not be working ($last_ssh_invalid seconds since last invalid attempt)"
 else
   ok "SSH port forwarding is working as of $last_ssh_invalid seconds ago"
+fi
+
+end_time=`date +%s`
+
+if (( end_time - start_time > 45 )); then
+  problem "deadjim script took $((end_time - start_time)) seconds"
+else
+  ok "deadjim script completed in $((end_time - start_time)) seconds"
 fi
 
 mv "$outfile.tmp" "$outfile"
