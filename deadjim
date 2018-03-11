@@ -55,7 +55,6 @@ host_up_check() {
 
   disk_check "$name root FS" 90 problem info "`ssh $ip df /`"
   loadavg_check $name $loadavg_limit problem "`ssh $ip cat /proc/loadavg`"
-  ok "$name is online"
 }
 
 ping_check() {
