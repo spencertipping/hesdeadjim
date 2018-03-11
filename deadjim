@@ -96,12 +96,22 @@ ping_check "DSL modem"              192.168.0.1 problem
 ping_check "Public DNS (primary)"   8.8.8.8     problem
 ping_check "Public DNS (secondary)" 8.8.4.4     problem
 
+# Website status
+ping_check "spencertipping.com" spencertipping.com problem
+
+ip=`curl spencertipping.com/ip.php 2>/dev/null`
+if ! egrep '[0-9]+\.[0-9]+\.' <<<"$ip"; then
+  problem "spencertipping.com failed to report our IP: $ip"
+else
+  ok "WAN IP is $ip"
+fi
+
 # Port forwarding status
 # Look for bogus SSH logins within the last ten minutes.
 last_ssh_invalid=`./ni /var/log/auth.log r/Invalid/ \
                        r+1p'my ($y, $m) = tep Ym => time;
                             my $log_t = tpe $y, $m, /\d+/g;
-                            $log_t - time'`
+                            int time() - $log_t'`
 
 if (( last_ssh_invalid > 600 )); then
   problem "SSH port forwarding may not be working ($last_ssh_invalid seconds since last invalid attempt)"
