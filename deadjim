@@ -6,6 +6,11 @@ set -euo pipefail
 
 start_time=`date +%s`
 
+# Kick off a watchdog that will kill this script if it fails to complete in time
+self_pid=$$
+( sleep 120 && kill -9 $self_pid ) &
+watchdog_pid=$!
+
 cd "$(dirname "$0")"
 git pull >&/dev/null
 
@@ -180,5 +185,8 @@ if (( end_time - start_time > 45 )); then
 else
   ok "deadjim script completed in $((end_time - start_time)) seconds"
 fi
+
+# Finalization
+kill $watchdog_pid
 
 mv "$outfile.tmp" "$outfile"
