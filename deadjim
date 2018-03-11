@@ -102,7 +102,7 @@ ping_check "Public DNS (secondary)" 8.8.4.4     problem
 ping_check "spencertipping.com" spencertipping.com problem
 
 ip=`curl spencertipping.com/ip.php 2>/dev/null`
-if ! egrep '[0-9]+\.[0-9]+\.' <<<"$ip"; then
+if ! egrep -q '[0-9]+\.[0-9]+\.' <<<"$ip"; then
   problem "spencertipping.com failed to report our IP: $ip"
 else
   ok "WAN IP is $ip"
