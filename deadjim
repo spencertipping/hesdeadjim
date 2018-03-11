@@ -100,10 +100,10 @@ gitlab_backup_modtime=`echo "$gitlab_backup_stat" | awk '{print $13}'`
   || problem "gitlab backup is too small ($((gitlab_backup_size / 1024)) KB)"
 
 gitlab_backup_seconds=$((start_time - gitlab_backup_modtime))
-if (( gitlab_backup_seconds > 3*3600 )); then
-  problem "gitlab backup is too old: $gitlab_backup_seconds second(s)"
+if (( gitlab_backup_seconds > 3600 + 1800 )); then
+  problem "gitlab backup is too old: ${gitlab_backup_seconds}s (limit is 5400s)"
 else
-  ok "gitlab backup is $gitlab_backup_seconds second(s) old"
+  ok "gitlab backup is ${gitlab_backup_seconds}s"
 fi
 
 # Check RAID6 on rho
