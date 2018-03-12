@@ -8,7 +8,7 @@ start_time=`date +%s`
 
 # Kick off a watchdog that will kill this script if it fails to complete in time
 self_pid=$$
-( sleep 120 && kill -9 $self_pid ) &
+( sleep 60 && kill $self_pid ) &
 watchdog_pid=$!
 
 cd "$(dirname "$0")"
@@ -180,7 +180,7 @@ fi
 
 end_time=`date +%s`
 
-if (( end_time - start_time > 60 )); then
+if (( end_time - start_time > 50 )); then
   problem "deadjim script took $((end_time - start_time)) seconds"
 else
   ok "deadjim script completed in $((end_time - start_time)) seconds"
