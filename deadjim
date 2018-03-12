@@ -102,14 +102,14 @@ host_up_check rho        10.35.0.4 problem 4
 host_up_check rockhopper 10.35.0.5 info    48     # not always on
 
 # Check torrent server
-if ! curl 10.35.0.3:8280 >&/dev/null; then
+if ! curl --max-time 5 10.35.0.3:8280 >&/dev/null; then
   problem "reykjavik torrent server appears to be down"
 else
   ok "reykjavik torrent server is running"
 fi
 
 # Check gitlab server
-if ! curl 10.35.0.3:8180 >&/dev/null; then
+if ! curl --max-time 5 10.35.0.3:8180 >&/dev/null; then
   problem "reykjavik gitlab appears to be down"
 else
   ok "reykjavik gitlab is running"
@@ -158,7 +158,7 @@ ping_check "Public DNS (secondary)" 8.8.4.4     problem
 # Website status
 ping_check "spencertipping.com" spencertipping.com problem
 
-ip=`curl spencertipping.com/ip.php 2>/dev/null`
+ip=`curl --max-time 5 spencertipping.com/ip.php 2>/dev/null`
 if ! egrep -q '[0-9]+\.[0-9]+\.' <<<"$ip"; then
   problem "spencertipping.com failed to report our IP: $ip"
 else
