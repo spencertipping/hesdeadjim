@@ -91,9 +91,9 @@ var update_connection_state = function () {
     if (!$('#connection').hasClass('offline')) {
       $('#connection').addClass('offline');
       notify("Jim, we're offline",
-             last_update_ms > 180000 && last_connection_ms < 30000
+             last_update_ms > 180000 && last_connection_ms < 120000
                ? "The server process hasn't updated the logs in 3 minutes"
-               : "The DeadJim webserver hasn't replied in 30 seconds");
+               : "The DeadJim webserver hasn't replied in 2 minutes");
     }
   } else
     $('#connection').removeClass('offline');
@@ -105,7 +105,7 @@ var update_connection_state = function () {
 };
 
 $(check_for_deadness);
-setInterval(check_for_deadness, 60000);
+setInterval(check_for_deadness, 30000);
 setInterval(update_connection_state, 500);
 </script>
 </body>
