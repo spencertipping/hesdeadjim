@@ -141,9 +141,10 @@ sub http($$)
     next if fork;
     my $n = 1;
     close $server;
-    $n = read $client, $_, 1, length until !$n || /\r?\n\r?\n/;
+    $n = read $client, $_, 1, length
+      until length > 1048576 || !$n || /\r?\n\r?\n/;
     my ($url) = /^GET (.*) HTTP\//;
-    &$f($url, $_, $client);
+    &$f($url, $_, $client) if defined $url;
     exit;
   }
 }
