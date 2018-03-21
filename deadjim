@@ -123,6 +123,21 @@ else
   ok "gitlab backup is ${gitlab_backup_seconds}s"
 fi
 
+# Check rocketchat server
+if ! curl --max-time 5 10.35.0.3:8380 >&/dev/null; then
+  problem "reykjavik rocketchat appears to be down"
+else
+  ok "reykjavik rocketchat is running"
+fi
+
+rocketchat_backup_modtime=$(stat --format=%Y /mnt/v1/backups/reykjavik-rocketchat/`date +%Y.%m%d.%H00.tgz`)
+rocketchat_backup_seconds=$((start_time - rocketchat_backup_modtime))
+if (( rocketchat_backup_seconds > 3600 + 1800 )); then
+  problem "rocketchat backup is too old: ${rocketchat_backup_seconds}s (limit is 5400s)"
+else
+  ok "rocketchat backup is ${rocketchat_backup_seconds}s"
+fi
+
 # Check RAID6 on rho
 ssh 10.35.0.4 'cat /proc/mdstat' | egrep -q UUUUUUUUUUUU \
   || problem "rho RAID6 is degraded or down"
