@@ -46,7 +46,7 @@ var notifications_supported =
 var last_notify = 0;
 var notify = function (title, body) {
   var now = +new Date;
-  if (notifications_supported && now - last_notify > 10000) {
+  if (notifications_supported && now - last_notify > 30000) {
     new Notification(title, {body: body});
     last_notify = now;
   }
@@ -88,13 +88,11 @@ var update_connection_state = function () {
     Notification.requestPermission();
 
   if (last_update_ms > 180000) {
-    if (!$('#connection').hasClass('offline')) {
-      $('#connection').addClass('offline');
-      notify("Jim, we're offline",
-             last_update_ms > 180000 && last_connection_ms < 120000
-               ? "The server process hasn't updated the logs in 3 minutes"
-               : "The DeadJim webserver hasn't replied in 2 minutes");
-    }
+    $('#connection').addClass('offline');
+    notify("Jim, we're offline",
+           last_update_ms > 180000 && last_connection_ms < 120000
+             ? "The server process hasn't updated the logs in 3 minutes"
+             : "The DeadJim webserver hasn't replied in 2 minutes");
   } else
     $('#connection').removeClass('offline');
 
