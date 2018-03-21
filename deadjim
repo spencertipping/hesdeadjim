@@ -131,7 +131,7 @@ else
 fi
 
 rocketchat_backup_modtime=$(stat --format=%Y /mnt/v1/backups/reykjavik-rocketchat/`date +%Y.%m%d.%H00.tgz`)
-rocketchat_backup_seconds=$((start_time - rocketchat_backup_modtime))
+rocketchat_backup_seconds=$((start_time - ${rocketchat_backup_modtime:-0}))
 if (( rocketchat_backup_seconds > 3600 + 1800 )); then
   problem "rocketchat backup is too old: ${rocketchat_backup_seconds}s (limit is 5400s)"
 else
