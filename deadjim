@@ -139,7 +139,7 @@ else
 fi
 
 # Check public rocketchat server
-if ! curl --max-time 5 https://dev.spencertipping.com >&/dev/null; then
+if ! curl --max-time 10 https://dev.spencertipping.com >&/dev/null; then
   problem "dev.spencertipping.com rocketchat appears to be down"
 else
   ok "dev.spencertipping.com rocketchat is running"
