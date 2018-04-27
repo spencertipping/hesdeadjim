@@ -102,10 +102,10 @@ host_up_check rho        10.35.0.4 problem 4
 host_up_check rockhopper 10.35.0.5 info    48     # not always on
 
 # Check torrent server
-if ! curl --max-time 5 10.35.0.3:8280 >&/dev/null; then
-  problem "reykjavik torrent server appears to be down"
+if ! curl --max-time 5 10.35.0.2:8280 >&/dev/null; then
+  problem "rorschach torrent server appears to be down"
 else
-  ok "reykjavik torrent server is running"
+  ok "rorschach torrent server is running"
 fi
 
 # Check gitlab server
