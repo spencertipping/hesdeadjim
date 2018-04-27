@@ -90,8 +90,8 @@ var update_connection_state = function () {
   if (last_update_ms > 180000) {
     $('#connection').addClass('offline');
     notify("Jim, we're offline",
-           last_update_ms > 180000 && last_connection_ms < 120000
-             ? "The server process hasn't updated the logs in 3 minutes"
+           last_update_ms > 300000 && last_connection_ms < 120000
+             ? "The server process hasn't updated the logs in 5 minutes"
              : "The DeadJim webserver hasn't replied in 2 minutes");
   } else
     $('#connection').removeClass('offline');
