@@ -4,6 +4,8 @@
 
 set -euo pipefail
 
+export NI_NO_MONITOR=yes
+
 start_time=`date +%s`
 
 # Kick off a watchdog that will kill this script if it fails to complete in time
@@ -58,7 +60,7 @@ ssh_access_check() {
   local subnets=$4
 
   local bogus_logins=` \
-    ./ni s$ip /var/log/auth.log r/Accepted/ \
+    ./ni s$ip[/var/log/auth.log r-1024] r/Accepted/ \
          rp"!/from (?:$subnets)/" \
          rp'my ($y, $m) = tep Ym => time;
             within 0, 3600, time() - tpe($y, $m, /\d+/g)'`
@@ -79,7 +81,8 @@ host_up_check() {
 
   disk_check "$name root FS" 512 problem info "`ssh $ip df -m /`"
   loadavg_check $name $loadavg_limit problem "`ssh $ip cat /proc/loadavg`"
-  ssh_access_check $name $ip problem "$ssh_allowed_subnets"
+  [[ -n "$ssh_allowed_subnets" ]] \
+    && ssh_access_check $name $ip problem "$ssh_allowed_subnets"
 }
 
 ping_check() {
