@@ -8,7 +8,7 @@ start_time=`date +%s`
 
 # Kick off a watchdog that will kill this script if it fails to complete in time
 self_pid=$$
-( sleep 60 && kill $self_pid ) &
+( sleep 240 && kill $self_pid ) &
 watchdog_pid=$!
 
 cd "$(dirname "$0")"
