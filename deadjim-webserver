@@ -87,7 +87,7 @@ var update_connection_state = function () {
   if (notifications_supported && Notification.permission !== "granted")
     Notification.requestPermission();
 
-  if (last_update_ms > 180000) {
+  if (last_update_ms > 300000) {
     $('#connection').addClass('offline');
     notify("Jim, we're offline",
            last_update_ms > 300000 && last_connection_ms < 120000
