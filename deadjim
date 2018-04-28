@@ -213,7 +213,7 @@ fi
 
 end_time=`date +%s`
 
-if (( end_time - start_time > 50 )); then
+if (( end_time - start_time > 90 )); then
   problem "deadjim script took $((end_time - start_time)) seconds"
 else
   ok "deadjim script completed in $((end_time - start_time)) seconds"
