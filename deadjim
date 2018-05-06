@@ -205,7 +205,7 @@ last_ssh_invalid=`./ni /var/log/auth.log r/Invalid/ \
                             my $log_t = tpe $y, $m, /\d+/g;
                             int time() - $log_t'`
 
-if (( last_ssh_invalid > 900 )); then
+if (( last_ssh_invalid > 1800 )); then
   problem "SSH port forwarding may not be working ($last_ssh_invalid seconds since last invalid attempt)"
 else
   ok "SSH port forwarding is working as of $last_ssh_invalid seconds ago"
