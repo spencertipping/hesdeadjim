@@ -201,8 +201,8 @@ fi
 # Port forwarding status
 # Look for bogus SSH logins within the last ten minutes.
 last_ssh_invalid=`tail -n1024 /var/log/auth.log \
-                  | ni r/Invalid/ r+1p'my ($y, $m) = tep Ym => time;
-                                       int time() - tpe $y, $m, /\d+/g'`
+                  | ./ni r/Invalid/ r+1p'my ($y, $m) = tep Ym => time;
+                                         int time() - tpe $y, $m, /\d+/g'`
 
 if (( last_ssh_invalid > 1800 )); then
   problem "SSH port forwarding may not be working ($last_ssh_invalid seconds since last invalid attempt)"
