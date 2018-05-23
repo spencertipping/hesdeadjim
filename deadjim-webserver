@@ -87,11 +87,11 @@ var update_connection_state = function () {
   if (notifications_supported && Notification.permission !== "granted")
     Notification.requestPermission();
 
-  if (last_update_ms > 1000 * 30 * 60) {
+  if (last_update_ms > 1000 * 35 * 60) {
     $('#connection').addClass('offline');
     notify("Jim, we're offline",
-           last_update_ms > 1000 * 30 * 60 && last_connection_ms < 120000
-             ? "The server process hasn't updated the logs in 30 minutes"
+           last_update_ms > 1000 * 35 * 60 && last_connection_ms < 120000
+             ? "The server process hasn't updated the logs in 35 minutes"
              : "The DeadJim webserver hasn't replied in 2 minutes");
   } else
     $('#connection').removeClass('offline');
