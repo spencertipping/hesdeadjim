@@ -2,8 +2,6 @@
 # My monitoring script; you would probably want to rewrite the site-specific
 # stuff below.
 
-set -euo pipefail
-
 export NI_NO_MONITOR=yes
 
 start_time=`date +%s`
