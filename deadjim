@@ -170,7 +170,7 @@ fi
 # Shared volumes
 # 2TB usage margin on /mnt/v1
 # 1TB usage margins on /mnt/t9 and /mnt/t3
-disk_check "/mnt/v1" $((2048 * 1024)) problem info "`df -m /mnt/v1`"
+disk_check "/mnt/v1" 1048576 problem info "`df -m /mnt/v1`"
 disk_check "reykjavik /mnt/t9" 1048576 problem info "`ssh 10.35.0.3 df -m /mnt/t9`"
 disk_check "reykjavik /mnt/t3" 1048576 problem info "`ssh 10.35.0.3 df -m /mnt/t3`"
 
