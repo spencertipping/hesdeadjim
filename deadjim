@@ -133,7 +133,7 @@ else
   ok "reykjavik rocketchat is running"
 fi
 
-rocketchat_backup_modtime=$(stat --format=%Y `ls -t /mnt/v1/backups/reykjavik-rocketchat/* | head -n1` || echo 0)
+rocketchat_backup_modtime=$(stat --format=%Y `ls -dt /mnt/v1/backups/reykjavik-rocketchat/* | head -n1` || echo 0)
 rocketchat_backup_seconds=$((start_time - rocketchat_backup_modtime))
 if (( rocketchat_backup_seconds > 3600 + 1800 )); then
   problem "rocketchat backup is too old: ${rocketchat_backup_seconds}s (limit is 5400s)"
@@ -148,7 +148,7 @@ else
   ok "dev.spencertipping.com rocketchat is running"
 fi
 
-dev_rocketchat_backup_modtime=$(stat --format=%Y `ls -t /mnt/v1/backups/dev-spencertipping-rocketchat/* | head -n1` || echo 0)
+dev_rocketchat_backup_modtime=$(stat --format=%Y `ls -dt /mnt/v1/backups/dev-spencertipping-rocketchat/* | head -n1` || echo 0)
 dev_rocketchat_backup_seconds=$((start_time - dev_rocketchat_backup_modtime))
 if (( dev_rocketchat_backup_seconds > 3600 + 1800 )); then
   problem "dev rocketchat backup is too old: ${dev_rocketchat_backup_seconds}s (limit is 5400s)"
