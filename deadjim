@@ -154,6 +154,20 @@ else
   ok "dev rocketchat backup is ${dev_rocketchat_backup_seconds}s"
 fi
 
+if ! curl --max-time 10 https://peeps.spencertipping.com >&/dev/null; then
+  problem "peeps.spencertipping.com rocketchat appears to be down"
+else
+  ok "peeps.spencertipping.com rocketchat is running"
+fi
+
+peeps_rocketchat_backup_modtime=$(stat --format=%Y `ls -dt /mnt/v1/backups/peeps-spencertipping-rocketchat/* | head -n1` || echo 0)
+peeps_rocketchat_backup_seconds=$((start_time - peeps_rocketchat_backup_modtime))
+if (( peeps_rocketchat_backup_seconds > 3600 + 1800 )); then
+  problem "peeps rocketchat backup is too old: ${peeps_rocketchat_backup_seconds}s (limit is 5400s)"
+else
+  ok "peeps rocketchat backup is ${peeps_rocketchat_backup_seconds}s"
+fi
+
 # Check RAID6 on rho
 ssh 10.35.0.4 'cat /proc/mdstat' | egrep -q UUUUUUUUUUUU \
   || problem "rho RAID6 is degraded or down"
