@@ -4,7 +4,7 @@
 Basically, the dumbest possible thing you could to for monitoring.
 
 ## What it looks like
-![image](http://storage9.static.itmages.com/i/18/0310/h_1520724312_6043538_6d65108798.png)
+![image](http://spencertipping.com/deadjim.png)
 
 You'll get desktop notifications if the server drops offline, any problems
 arise, or if the crontab process doesn't update within three minutes.
