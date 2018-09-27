@@ -98,9 +98,9 @@ ping_check() {
 echo "<div id='rundate'>`date +%s`</div>"
 
 host_up_check rorschach  10.35.0.2 problem 96 '10\.35\.[01]\.|192\.168\.0\.'
-host_up_check reykjavik  10.35.0.3 problem 16
-host_up_check rho        10.35.0.4 problem 4
-host_up_check rockhopper 10.35.0.5 info    48     # not always on
+host_up_check rho        10.35.0.4 problem 16
+host_up_check reykjavik  10.35.0.3 info    1024   # not always on
+host_up_check rockhopper 10.35.0.5 info    1024   # not always on
 
 # Check torrent server
 if ! curl --max-time 5 10.35.0.2:8280 >&/dev/null; then
@@ -110,33 +110,17 @@ else
 fi
 
 # Check gitlab server
-if ! curl --max-time 5 10.35.0.3:8180 >&/dev/null; then
-  problem "reykjavik gitlab appears to be down"
+if ! curl --max-time 5 10.35.0.4:8180 >&/dev/null; then
+  problem "rho gitlab appears to be down"
 else
-  ok "reykjavik gitlab is running"
-fi
-
-gitlab_backup_modtime=$(< /mnt/v1/backups/reykjavik-srv-backup/backup-date)
-gitlab_backup_seconds=$((start_time - gitlab_backup_modtime))
-if (( gitlab_backup_seconds > 3600 + 1800 )); then
-  problem "gitlab backup is too old: ${gitlab_backup_seconds}s (limit is 5400s)"
-else
-  ok "gitlab backup is ${gitlab_backup_seconds}s"
+  ok "rho gitlab is running"
 fi
 
 # Check rocketchat server
-if ! curl --max-time 5 10.35.0.3:8380 >&/dev/null; then
-  problem "reykjavik rocketchat appears to be down"
+if ! curl --max-time 5 10.35.0.4:8380 >&/dev/null; then
+  problem "rho rocketchat appears to be down"
 else
-  ok "reykjavik rocketchat is running"
-fi
-
-rocketchat_backup_modtime=$(stat --format=%Y `ls -dt /mnt/v1/backups/reykjavik-rocketchat/* | head -n1` || echo 0)
-rocketchat_backup_seconds=$((start_time - rocketchat_backup_modtime))
-if (( rocketchat_backup_seconds > 3600 + 1800 )); then
-  problem "rocketchat backup is too old: ${rocketchat_backup_seconds}s (limit is 5400s)"
-else
-  ok "rocketchat backup is ${rocketchat_backup_seconds}s"
+  ok "rho rocketchat is running"
 fi
 
 # Check public rocketchat server
@@ -182,11 +166,7 @@ else
 fi
 
 # Shared volumes
-# 2TB usage margin on /mnt/v1
-# 1TB usage margins on /mnt/t9 and /mnt/t3
 disk_check "/mnt/v1" 1048576 problem info "`df -m /mnt/v1`"
-disk_check "reykjavik /mnt/t9" 1048576 problem info "`ssh 10.35.0.3 df -m /mnt/t9`"
-disk_check "reykjavik /mnt/t3" 1048576 problem info "`ssh 10.35.0.3 df -m /mnt/t3`"
 
 # VPN clients
 ping_check "VPN iniidae"      10.35.1.4  warning
